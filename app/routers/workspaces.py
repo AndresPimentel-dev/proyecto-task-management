@@ -1,10 +1,11 @@
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
 from app.database import get_db
+from app.limiter import limiter
 from app.models import UsersTable, WorkspacesTable
 from app.schemas import (
     WorkspaceCreate,
@@ -26,7 +27,9 @@ router = APIRouter(prefix="/api/v1.0", tags=["Workspaces"])
     status_code=status.HTTP_201_CREATED,
     response_model=WorkspaceResponse,
 )
+@limiter.limit("60/minute")
 def create_workspace(
+    request: Request,
     workspace_data: WorkspaceCreate,
     db: Session = Depends(get_db),
     current_user: UsersTable = Depends(get_current_user),
@@ -53,7 +56,9 @@ def create_workspace(
     status_code=status.HTTP_200_OK,
     response_model=WorkspacesListResponse,
 )
+@limiter.limit("60/minute")
 def list_workspaces(
+    request: Request,
     db: Session = Depends(get_db),
     current_user: UsersTable = Depends(get_current_user),
 ):
@@ -70,7 +75,9 @@ def list_workspaces(
     status_code=status.HTTP_200_OK,
     response_model=WorkspaceResponse,
 )
+@limiter.limit("60/minute")
 def read_workspace(
+    request: Request,
     workspace_id: int,
     db: Session = Depends(get_db),
     current_user: UsersTable = Depends(get_current_user),
@@ -96,7 +103,9 @@ def read_workspace(
     status_code=status.HTTP_200_OK,
     response_model=WorkspaceResponse,
 )
+@limiter.limit("60/minute")
 def update_workspace(
+    request: Request,
     workspace_id: int,
     workspace_data: WorkspaceUpdate,
     db: Session = Depends(get_db),
@@ -131,7 +140,9 @@ def update_workspace(
 
 
 @router.delete("/workspaces/{workspace_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("60/minute")
 def delete_workspace(
+    request: Request,
     workspace_id: int,
     db: Session = Depends(get_db),
     current_user: UsersTable = Depends(get_current_user),

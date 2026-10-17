@@ -1,0 +1,6 @@
+[tool.ruff.lint]
+# Aquí agregas B008 a la lista de errores a ignorar
+ignore = [
+    "B008", 
+    # Puedes dejar otros si ya los ignorabas, o poner solo este
+]

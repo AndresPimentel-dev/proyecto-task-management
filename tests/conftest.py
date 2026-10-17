@@ -1,26 +1,28 @@
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 # Asegurar que el directorio raíz del proyecto esté en sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from alembic import command  # noqa: E402
-from alembic.config import Config  # noqa: E402
-from dotenv import load_dotenv  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
-import pytest  # noqa: E402
-from sqlalchemy import create_engine  # noqa: E402
-from sqlalchemy.orm import sessionmaker  # noqa: E402
+import pytest
+from alembic.config import Config
+from dotenv import load_dotenv
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
+from alembic import command
+
+os.environ["TESTING"] = "true"
 os.environ["DATABASE_URL"] = "sqlite:///./testbase.db"
 os.environ["SECRET_KEY"] = (
     "askfgjdgasdfgkgasdkhfhjfgsdakhgasdhfjhasdgfjdafvgasdfhjhsafsjdsdavfokmasvbfkasdvfafiopj"
 )
 os.environ["access_token_expire_minutes"] = "30"
 
-from app.database import get_db  # noqa: E402
-from app.main import app  # noqa: E402
+from app.database import get_db
+from app.main import app
 
 load_dotenv()
 

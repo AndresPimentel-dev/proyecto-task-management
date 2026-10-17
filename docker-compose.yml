@@ -6,8 +6,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=taskforge_db
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -15,13 +13,25 @@ services:
       interval: 3s
       timeout: 3s
       retries: 5
+
+  reverse_proxy:
+    container_name: caddy_container
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - caddy_data:/data
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      - web
+
+  # 1. El servicio principal construye la imagen y le asigna un nombre (tag)
   web:
     build: .
+    image: taskforge_app:latest  # <--- Asignamos un nombre oficial a la imagen
     container_name: taskforge_api
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
     environment:
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/taskforge_db
       - SECRET_KEY=${SECRET_KEY}
@@ -32,17 +42,21 @@ services:
         condition: service_completed_successfully
       migrations:
         condition: service_completed_successfully
+
+  # 2. Reciclamos la imagen creada por 'web' para correr las pruebas
   tests:
-    build: .
+    image: taskforge_app:latest  # <--- Reutilizamos la misma imagen (sin 'build:')
     container_name: taskforge_test
     volumes:
-      - .:/app
+      - .:/app  # Mantenemos el volumen para desarrollo local si lo deseas
     command: python -m pytest && python -m compileall . && ruff check .
     depends_on:
       db:
         condition: service_healthy
+
+  # 3. Reciclamos la misma imagen para aplicar las migraciones de Alembic
   migrations:
-    build: .
+    image: taskforge_app:latest  # <--- Reutilizamos la misma imagen (sin 'build:')
     container_name: alembic_migrations
     environment:
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/taskforge_db
@@ -54,3 +68,4 @@ services:
 
 volumes:
   postgres_data:
+  caddy_data:

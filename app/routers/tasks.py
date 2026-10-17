@@ -1,16 +1,17 @@
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
 from app.database import get_db
+from app.limiter import limiter
 from app.models import TasksTable, UsersTable, WorkspacesTable
 from app.schemas import (
     TaskCreate,
     TaskResponse,
-    TaskStatus,
     TasksListResponse,
+    TaskStatus,
     TaskUpdate,
 )
 
@@ -27,7 +28,9 @@ router = APIRouter(prefix="/api/v1.0", tags=["Tasks"])
     status_code=status.HTTP_201_CREATED,
     response_model=TaskResponse,
 )
+@limiter.limit("60/minute")
 def create_task(
+    request: Request,
     task_data: TaskCreate,
     db: Session = Depends(get_db),
     current_user: UsersTable = Depends(get_current_user),
@@ -76,7 +79,9 @@ def create_task(
     status_code=status.HTTP_200_OK,
     response_model=TasksListResponse,
 )
+@limiter.limit("60/minute")
 def read_tasks(
+    request: Request,
     workspace_id: int | None = Query(default=None, description="Filtrar por workspace"),
     task_status: TaskStatus | None = Query(
         default=None, alias="status", description="Filtrar por estado"
@@ -101,7 +106,9 @@ def read_tasks(
     status_code=status.HTTP_200_OK,
     response_model=TaskResponse,
 )
+@limiter.limit("60/minute")
 def read_task(
+    request: Request,
     task_id: int,
     db: Session = Depends(get_db),
     current_user: UsersTable = Depends(get_current_user),
@@ -124,7 +131,9 @@ def read_task(
     status_code=status.HTTP_200_OK,
     response_model=TaskResponse,
 )
+@limiter.limit("60/minute")
 def update_task(
+    request: Request,
     task_id: int,
     task_data: TaskUpdate,
     db: Session = Depends(get_db),
@@ -162,7 +171,9 @@ def update_task(
 
 
 @router.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("60/minute")
 def delete_task(
+    request: Request,
     task_id: int,
     db: Session = Depends(get_db),
     current_user: UsersTable = Depends(get_current_user),

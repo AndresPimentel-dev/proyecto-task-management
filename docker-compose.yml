@@ -45,6 +45,7 @@ services:
 
   # 2. Reciclamos la imagen creada por 'web' para correr las pruebas
   tests:
+    build: .
     image: taskforge_app:latest  # <--- Reutilizamos la misma imagen (sin 'build:')
     container_name: taskforge_test
     volumes:
@@ -56,6 +57,7 @@ services:
 
   # 3. Reciclamos la misma imagen para aplicar las migraciones de Alembic
   migrations:
+    build: .
     image: taskforge_app:latest  # <--- Reutilizamos la misma imagen (sin 'build:')
     container_name: alembic_migrations
     environment:

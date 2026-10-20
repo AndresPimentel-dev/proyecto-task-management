@@ -25,12 +25,13 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 def health():
     return {"status": "working"}
 
+
 @app.get("/")
 def read_root():
-  return {
-      "message": "Bienvenido a TaskForge API",
-      "docs": "Visita /docs para ver la documentación",
-  }
+    return {
+        "message": "Bienvenido a TaskForge API",
+        "docs": "Visita /docs para ver la documentación",
+    }
 
 
 # 3. Incluyes tus routers normalmente (SIN dependencies de limiter)

@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class SettingsClass(BaseSettings):
-    DATABASE_URL: str 
+    DATABASE_URL: str
     SECRET_KEY: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30

@@ -9,6 +9,22 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: mi_base_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        # Esto asegura que el pipeline espere a que Postgres esté listo para recibir conexiones
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
   
     steps:
   
@@ -27,7 +43,9 @@ jobs:
   
     - name: run python test
       run: python -m compileall .
-
+      env:
+        DATABASE_URL: postgres://test_user:test_password@localhost:5432/mi_base_test
+        SECRET_KEY: askfgjdgasdfgkgasdkhfhjfgsdakhgasdhfjhasdgfjdafvgasdfhjhsafsjdsdavfokmasvbfkasdvfafiopj
     - name: run ruff test
       run: ruff check .
   
@@ -43,5 +61,9 @@ jobs:
 
     - name: Esperar y verificar docker compose
       run: |
-        sleep 40
-        docker compose ps
+        echo "Esperando a que la API responda..."
+        curl --retry 10 \
+             --retry-delay 3 \
+             --retry-connrefused \
+             --fail \
+             http://localhost:8000/

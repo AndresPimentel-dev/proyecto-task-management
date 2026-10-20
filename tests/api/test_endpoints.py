@@ -335,7 +335,7 @@ def test_get_non_existing_workspace(cliente):
         headers={"Authorization": f"Bearer {access_token}"},
     )
     response = cliente.get(
-        f"/api/v1.0/workspaces{9999}",
+        f"/api/v1.0/workspaces/{9999}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
 
@@ -424,7 +424,7 @@ def test_userA_cannot_get_userB_workspace(cliente):
         headers={"Authorization": f"Bearer {tokenUsuarioB}"},
     )
     UsuarioA_payload = cliente.get(
-        f"/api/v1.0/workspaces{workspaceUsuarioB.json()['id']}",
+        f"/api/v1.0/workspaces/{workspaceUsuarioB.json()['id']}",
         headers={"Authorization": f"Bearer {tokenusuarioA}"},
     )
     assert UsuarioA_payload.status_code == 404
@@ -459,12 +459,10 @@ def test_userA_cannor_update_userB_workspace(cliente):
         headers={"Authorization": f"Bearer {tokenUsuarioB}"},
     )
     response = cliente.put(
-        f"/api/v1.0/workspaces{workspaceUsuarioB.json()['id']}",
+        f"/api/v1.0/workspaces/{workspaceUsuarioB.json()['id']}",
         json={
-            "username": "fakenewnombre",
-            "deadline": "2027-09-29",
+            "name": "fakenewnombre",
             "description": "fakenewdescripcion",
-            "created_at": "2026-06-25",
         },
         headers={"Authorization": f"Bearer {tokenusuarioA}"},
     )
@@ -854,7 +852,7 @@ def test_userA_cannot_get_userB_task(cliente):
         headers={"Authorization": f"Bearer {tokenUsuarioB}"},
     )
     UsuarioA_payload = cliente.get(
-        f"/api/v1.0/workspaces/{tasksauserB.json()['id']}",
+        f"/api/v1.0/tasks/{tasksauserB.json()['id']}",
         headers={"Authorization": f"Bearer {tokenusuarioA}"},
     )
     assert UsuarioA_payload.status_code == 404
@@ -902,10 +900,9 @@ def test_userA_cannor_update_userB_tasks(cliente):
     )
 
     response = cliente.put(
-        f"/api/v1.0/workspaces{tasksauserB.json()['id']}",
+        f"/api/v1.0/tasks/{tasksauserB.json()['id']}",
         json={
-            "username": "fakenewnombre",
-            "deadline": "2027-09-29",
+            "title": "fakenewnombre",
             "description": "fakenewdescripcion",
         },
         headers={"Authorization": f"Bearer {tokenusuarioA}"},

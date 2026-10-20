@@ -15,26 +15,31 @@ from sqlalchemy.orm import sessionmaker
 from alembic import command
 
 os.environ["TESTING"] = "true"
-os.environ["DATABASE_URL"] = "sqlite:///./testbase.db"
-os.environ["SECRET_KEY"] = (
-    "askfgjdgasdfgkgasdkhfhjfgsdakhgasdhfjhasdgfjdafvgasdfhjhsafsjdsdavfokmasvbfkasdvfafiopj"
+os.environ.setdefault(
+    "DATABASE_URL",
+    "postgresql://postgres:postgres_test_password@localhost:5433/taskforge_test_db",
 )
-os.environ["access_token_expire_minutes"] = "30"
-
-from app.database import get_db
-from app.main import app
+os.environ.setdefault(
+    "SECRET_KEY",
+    "askfgjdgasdfgkgasdkhfhjfgsdakhgasdhfjhasdgfjdafvgasdfhjhsafsjdsdavfokmasvbfkasdvfafiopj",
+)
+os.environ.setdefault("algorithm", "HS256")
+os.environ.setdefault("access_token_expire_minutes", "30")
 
 load_dotenv()
 
-DB_URL = os.getenv("DATABASE_URL")
-engine = create_engine(url=DB_URL, connect_args={"check_same_thread": False})
+from app.config import settings
+from app.database import get_db
+from app.main import app
+
+DB_URL = settings.DATABASE_URL
+engine = create_engine(url=DB_URL)
 SessionTesting = sessionmaker(autoflush=False, autocommit=False, bind=engine)
 
 
 @pytest.fixture(autouse=True)
 def create_tables():
-    # usamos ahora las migraciones de alembic
-    # para reemplazar el base.metadata.create_all()
+    # usamos ahora las migraciones de alembic en la base de datos postgres de pruebas
     alembic_cfg = Config("alembic.ini")
     command.upgrade(alembic_cfg, "head")
     yield

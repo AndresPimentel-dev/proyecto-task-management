@@ -1,4 +1,5 @@
 services:
+  # Base de datos real para la aplicación
   db:
     image: postgres:15-alpine
     container_name: taskforge_postgres_db
@@ -10,6 +11,20 @@ services:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d taskforge_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  # Base de datos postgres de prueba independiente para los tests
+  db_test:
+    image: postgres:15-alpine
+    container_name: taskforge_postgres_test_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres_test_password
+      - POSTGRES_DB=taskforge_test_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d taskforge_test_db"]
       interval: 3s
       timeout: 3s
       retries: 5
@@ -27,46 +42,68 @@ services:
     depends_on:
       - web
 
-  # 1. El servicio principal construye la imagen y le asigna un nombre (tag)
+  # 1. El servicio principal construye la imagen y corre conectado a la base de datos real
   web:
     build: .
-    image: taskforge_app:latest  # <--- Asignamos un nombre oficial a la imagen
+    image: taskforge_app:latest
     container_name: taskforge_api
     environment:
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/taskforge_db
       - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${algorithm:-HS256}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${access_token_expire_minutes:-30}
     depends_on:
       db:
         condition: service_healthy
-      tests:
+      tests_cleanup:
         condition: service_completed_successfully
       migrations:
         condition: service_completed_successfully
 
-  # 2. Reciclamos la imagen creada por 'web' para correr las pruebas
+  # 2. Corremos las pruebas conectadas a la base de datos postgres de prueba con variables inyectadas
   tests:
     build: .
-    image: taskforge_app:latest  # <--- Reutilizamos la misma imagen (sin 'build:')
+    image: taskforge_app:latest
     container_name: taskforge_test
     volumes:
-      - .:/app  # Mantenemos el volumen para desarrollo local si lo deseas
+      - .:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres_test_password@db_test:5432/taskforge_test_db
+      - SECRET_KEY=test_secret_key_testing_postgres_db_taskforge_api
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
     command: python -m pytest && python -m compileall . && ruff check .
     depends_on:
-      db:
+      db_test:
         condition: service_healthy
 
-  # 3. Reciclamos la misma imagen para aplicar las migraciones de Alembic
+  # 3. Al pasar los tests exitosamente, apaga la base de datos de prueba
+  tests_cleanup:
+    image: docker:cli
+    container_name: taskforge_tests_cleanup
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: docker stop taskforge_postgres_test_db
+    depends_on:
+      tests:
+        condition: service_completed_successfully
+
+  # 4. Aplica las migraciones de Alembic en la base de datos real
   migrations:
     build: .
-    image: taskforge_app:latest  # <--- Reutilizamos la misma imagen (sin 'build:')
+    image: taskforge_app:latest
     container_name: alembic_migrations
     environment:
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/taskforge_db
       - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${algorithm:-HS256}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${access_token_expire_minutes:-30}
     command: alembic upgrade head
     depends_on:
       db:
         condition: service_healthy
+      tests_cleanup:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:

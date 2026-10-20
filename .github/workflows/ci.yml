@@ -66,4 +66,4 @@ jobs:
              --retry-delay 3 \
              --retry-connrefused \
              --fail \
-             http://localhost:8000/
+             http://localhost:443/

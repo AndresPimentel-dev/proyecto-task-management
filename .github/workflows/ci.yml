@@ -62,7 +62,7 @@ jobs:
 
     - name: Esperar y verificar docker compose
       run: |
-        curl -k -L --retry 10 \
+        curl -k -L --http1.1 --retry 10 \
                    --retry-delay 3 \
                    --retry-connrefused \
                    --fail \

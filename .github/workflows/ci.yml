@@ -62,22 +62,8 @@ jobs:
 
     - name: Esperar y verificar docker compose
       run: |
-        echo "Esperando a que la API responda a través del reverse proxy..."
-        
-        # Intentamos hacer un curl que imprima el código HTTP (-o /dev/null -w "%{http_code}")
-        # Esto nos dirá exactamente qué número devuelve Caddy
-        for i in {1..10}; do
-          RESPONSE=$(curl -k -s -o /dev/null -w "%{http_code}" https://localhost/ || echo "FALLO_CONEXION")
-          echo "Intento $i: Código HTTP recibido -> $RESPONSE"
-          
-          if [ "$RESPONSE" = "200" ]; then
-            echo "¡Éxito! La API respondió con 200 OK."
-            exit 0
-          fi
-          
-          sleep 3
-        done
-    
-        echo "❌ La API no respondió correctamente tras varios intentos. Mostrando logs:"
-        docker compose logs
-        exit 1
+        curl -k -L --retry 10 \
+                   --retry-delay 3 \
+                   --retry-connrefused \
+                   --fail \
+                   https://localhost/

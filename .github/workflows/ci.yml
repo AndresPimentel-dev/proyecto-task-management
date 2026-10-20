@@ -43,14 +43,15 @@ jobs:
   
     - name: run python test
       run: python -m compileall .
-      env:
-        DATABASE_URL: postgres://test_user:test_password@localhost:5432/mi_base_test
-        SECRET_KEY: askfgjdgasdfgkgasdkhfhjfgsdakhgasdhfjhasdgfjdafvgasdfhjhsafsjdsdavfokmasvbfkasdvfafiopj
+      
     - name: run ruff test
       run: ruff check .
   
     - name: run unit tests and API tests
       run: python -m pytest
+      env:
+        DATABASE_URL: postgres://test_user:test_password@localhost:5432/mi_base_test
+        SECRET_KEY: askfgjdgasdfgkgasdkhfhjfgsdakhgasdhfjhasdgfjdafvgasdfhjhsafsjdsdavfokmasvbfkasdvfafiopj
 
     - name: run Docker compose to check
       env:

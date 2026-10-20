@@ -17,7 +17,7 @@ from alembic import command
 os.environ["TESTING"] = "true"
 os.environ.setdefault(
     "DATABASE_URL",
-    "postgresql://postgres:postgres_test_password@localhost:5433/taskforge_test_db",
+    "sqlite:///./test.db",
 )
 os.environ.setdefault(
     "SECRET_KEY",

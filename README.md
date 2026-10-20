@@ -70,8 +70,8 @@ Ensure you have **Docker** and **Docker Compose** installed on your system.
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/AndresPimentel-dev/Task-Management-Api.git
-   cd Task-Management-Api
+   git clone https://github.com/AndresPimentel-dev/task-management-API.git
+   cd task-management-API
    ```
 
 2. Create a `.env` file based on `.env.example`:
@@ -105,7 +105,7 @@ Ensure you have **Docker** and **Docker Compose** installed on your system.
 ## 🔎 API Documentation
 
 Interactive Swagger UI available at:
-`http://localhost:8000/docs`
+`http://localhost:443/docs`
 
 ---
 

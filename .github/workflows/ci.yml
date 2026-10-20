@@ -50,7 +50,7 @@ jobs:
     - name: run unit tests and API tests
       run: python -m pytest
       env:
-        DATABASE_URL: postgres://test_user:test_password@localhost:5432/mi_base_test
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/mi_base_test
         SECRET_KEY: askfgjdgasdfgkgasdkhfhjfgsdakhgasdhfjhasdgfjdafvgasdfhjhsafsjdsdavfokmasvbfkasdvfafiopj
 
     - name: run Docker compose to check
